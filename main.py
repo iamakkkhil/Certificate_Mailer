@@ -80,7 +80,7 @@ def ppt_to_pdf(input_file_path, output_file_path):
 
 
 def create_email_body(name, email):
-    subject = "Google Cloud Completion Mail"
+    subject = "[GDSC I²IT] Congratulations🎉 #30DaysofGoogleCloud "
     body = "This is an email with attachment sent from Python"
     sender_email = os.environ.get("EMAIL")
     receiver_email = email
@@ -120,7 +120,6 @@ def create_email_body(name, email):
 
 def send_mail(names, emails):
     sender_email = os.environ.get("EMAIL")
-    receiver_email = "akhilbhalerao@gmail.com"
     password = os.environ.get("PASSWORD")
 
     # Log in to server using secure context and send email
@@ -133,6 +132,7 @@ def send_mail(names, emails):
 
         for i in range(len(emails)):
             text = create_email_body(names[i], emails[i])
+            receiver_email = emails[i]
             server.sendmail(sender_email, receiver_email, text)
             print(f"Mail sent successfully to {names[i]}.")
 
