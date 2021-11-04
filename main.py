@@ -138,7 +138,6 @@ def send_mail(names, emails):
 
 
 if __name__ == "__main__":
-    user_name = "Akhil Bhalerao"
     ppt_file_path = "assets/Both_tracks.pptx"
     user_data_file_path = os.path.abspath("User_details/Trial.csv")
     names, emails = read_csv(user_data_file_path)
