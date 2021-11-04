@@ -79,9 +79,15 @@ def ppt_to_pdf(input_file_path, output_file_path):
     slides.Close()
 
 
-def create_email_body(name, email):
+def read_body(filename):
+    with open(filename, "r") as f:
+        body = f.read()
+    return body
+
+
+def create_email_body(name, email, body):
     subject = "[GDSC I²IT] Congratulations🎉 #30DaysofGoogleCloud "
-    body = "This is an email with attachment sent from Python"
+    body = body
     sender_email = os.environ.get("EMAIL")
     receiver_email = email
 
@@ -95,7 +101,7 @@ def create_email_body(name, email):
     # Add body to email
     message.attach(MIMEText(body, "plain"))
 
-    filename = f"output/Output_{name}.pptx" # In same directory as script
+    filename = f"output/Output_{name}.pptx"  # In same directory as script
     # Open PDF file in binary mode
     with open(filename, "rb") as attachment:
         # Add file as application/octet-stream
@@ -130,8 +136,9 @@ def send_mail(names, emails):
         print("Logged In...")
         print("Sending mail...")
 
+        body = read_body("assets/email_body.txt")
         for i in range(len(emails)):
-            text = create_email_body(names[i], emails[i])
+            text = create_email_body(names[i], emails[i], body)
             receiver_email = emails[i]
             server.sendmail(sender_email, receiver_email, text)
             print(f"Mail sent successfully to {names[i]}.")
