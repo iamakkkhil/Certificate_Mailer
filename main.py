@@ -1,5 +1,7 @@
 from pptx import Presentation 
 from pptx.util import Pt
+import os
+import comtypes.client
 
 # Opening file
 prs = Presentation('assets/Both_Tracks_Golden_Certificate.pptx')
@@ -19,4 +21,22 @@ for shape in slide.shapes:
             font.name = 'Caveat'
             font.size = Pt(40)
 
-prs.save(f"output/Output_{name}.pdf")
+prs.save(f"output/Output_{name}.pptx")
+
+input_file_path = os.path.abspath(f"output/Output_{name}.pptx")
+output_file_path = os.path.abspath(f"output/Output_{name}.pdf")
+
+#%% Create powerpoint application object
+powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
+
+#%% Set visibility to minimize
+powerpoint.Visible = 1
+
+#%% Open the powerpoint slides
+slides = powerpoint.Presentations.Open(input_file_path)
+
+#%% Save as PDF (formatType = 32)
+slides.SaveAs(output_file_path, 32)
+
+#%% Close the slide deck
+slides.Close()
