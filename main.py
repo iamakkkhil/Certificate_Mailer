@@ -15,11 +15,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def delete_file(filename):
+    try:
+        os.remove(filename)
+    except Exception as e:
+        print(e)
+
+
 def delete_pptx(names):
     for name in names:
         try:
             os.remove(f"output/Output_{name}.pptx")
         except Exception as e:
+            print(e)
             pass
 
 
@@ -36,7 +45,7 @@ def add_name_to_ppt(ppt_file_path, names):
         prs = Presentation(ppt_file_path)
         slide = prs.slides[0]
 
-    # Prinitng everyones name on the certificate
+        # Prinitng everyones name on the certificate
         for shape in slide.shapes:
             if shape.has_text_frame:
                 text_frame = shape.text_frame
@@ -50,7 +59,11 @@ def add_name_to_ppt(ppt_file_path, names):
                     font.name = "Caveat"
                     font.size = Pt(35)
 
-        prs.save(f"output/Output_{name}.pptx")
+        file_path_ppt = f"output/Output_{name}.pptx"
+        file_path_pdf = f"output/Output_{name}.pdf"
+        prs.save(file_path_ppt)
+        # ppt_to_pdf(file_path_ppt, file_path_pdf)
+        # delete_file(file_path_ppt)
 
 
 def ppt_to_pdf(input_file_path, output_file_path):
@@ -66,12 +79,11 @@ def ppt_to_pdf(input_file_path, output_file_path):
     slides.Close()
 
 
-def send_mail(file_path, user_name):
-    subject = "An email with attachment from Python"
+def create_email_body(name, email):
+    subject = "Google Cloud Completion Mail"
     body = "This is an email with attachment sent from Python"
     sender_email = os.environ.get("EMAIL")
-    receiver_email = "akhilbhalerao@gmail.com"
-    password = os.environ.get("PASSWORD")
+    receiver_email = email
 
     # Create a multipart message and set headers
     message = MIMEMultipart()
@@ -83,7 +95,7 @@ def send_mail(file_path, user_name):
     # Add body to email
     message.attach(MIMEText(body, "plain"))
 
-    filename = file_path  # In same directory as script
+    filename = f"output/Output_{name}.pptx" # In same directory as script
     # Open PDF file in binary mode
     with open(filename, "rb") as attachment:
         # Add file as application/octet-stream
@@ -97,12 +109,19 @@ def send_mail(file_path, user_name):
     # Add header as key/value pair to attachment part
     part.add_header(
         "Content-Disposition",
-        f"attachment; filename= {user_name} Certificate.pptx",
+        f"attachment; filename= {name} Certificate.pptx",
     )
 
     # Add attachment to message and convert message to string
     message.attach(part)
     text = message.as_string()
+    return text
+
+
+def send_mail(names, emails):
+    sender_email = os.environ.get("EMAIL")
+    receiver_email = "akhilbhalerao@gmail.com"
+    password = os.environ.get("PASSWORD")
 
     # Log in to server using secure context and send email
     context = ssl.create_default_context()
@@ -111,20 +130,19 @@ def send_mail(file_path, user_name):
         server.login(sender_email, password)
         print("Logged In...")
         print("Sending mail...")
-        server.sendmail(sender_email, receiver_email, text)
-        print(f"Mail sent successfully to {user_name}.")
+
+        for i in range(len(emails)):
+            text = create_email_body(names[i], emails[i])
+            server.sendmail(sender_email, receiver_email, text)
+            print(f"Mail sent successfully to {names[i]}.")
 
 
 if __name__ == "__main__":
     user_name = "Akhil Bhalerao"
     ppt_file_path = "assets/Both_tracks.pptx"
-    input_file_path = os.path.abspath(f"output/Output_{user_name}.pptx")
-    output_file_path = os.path.abspath(f"output/Output_{user_name}.pptx")
-    user_data_file_path = os.path.abspath(
-        "User_details/Both_Track_Winners_Data.csv"
-    )
-    # send_mail(output_file_path, user_name)
-    names, emails =read_csv(user_data_file_path)
+    user_data_file_path = os.path.abspath("User_details/Trial.csv")
+    names, emails = read_csv(user_data_file_path)
     add_name_to_ppt(ppt_file_path, names)
-    # delete_pptx(names)
-    
+    send_mail(names, emails)
+
+    delete_pptx(names)
