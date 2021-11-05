@@ -1,4 +1,4 @@
-from PIL import Image, ImageFont, ImageDraw 
+from PIL import Image, ImageFont, ImageDraw
 import os
 import pandas as pd
 
@@ -45,10 +45,10 @@ def add_name_to_certificate(file_path, names):
     filepath = os.path.abspath(file_path)
     for name in names:
         image = Image.open(filepath)
-        caveat_font = ImageFont.truetype('Caveat/caveat.ttf', 50)
+        caveat_font = ImageFont.truetype("Caveat/caveat.ttf", 50)
         title_text = name
         image_editable = ImageDraw.Draw(image)
-        image_editable.text((60,285), title_text, (0, 0, 0), font=caveat_font)
+        image_editable.text((60, 285), title_text, (0, 0, 0), font=caveat_font)
         image.save(f"output/{name}_certificate.png")
 
 
@@ -113,13 +113,18 @@ def send_mail(names, emails):
         for i in range(len(emails)):
             text = create_email_body(names[i], emails[i], body)
             receiver_email = emails[i]
-            server.sendmail(sender_email, receiver_email, text)
-            print(f"Mail sent successfully to {i} - {names[i]} - {emails[i]}.")
+            try:
+                server.sendmail(sender_email, receiver_email, text)
+                print(f"Mail sent successfully to {i} - {names[i]} - {emails[i]}.")
+            except Exception as e:
+                print(f"Mail unsuccessful {i} - {names[i]} - {emails[i]}.")
+                print(e)
+                pass
 
 
 if __name__ == "__main__":
     file_path = "assets/Both_tracks.png"
-    user_data_file_path = os.path.abspath("User_details/Both_Track_Winners_Data.csv")
+    user_data_file_path = os.path.abspath("User_details/Both_Track_Winners_Data2.csv")
     names, emails = read_csv(user_data_file_path)
     add_name_to_certificate(file_path, names)
     send_mail(names, emails)
