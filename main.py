@@ -1,5 +1,4 @@
-from pptx import Presentation
-from pptx.util import Pt
+from PIL import Image, ImageFont, ImageDraw 
 import os
 import pandas as pd
 
@@ -23,10 +22,10 @@ def delete_file(filename):
         print(e)
 
 
-def delete_pptx(names):
+def delete_files(names):
     for name in names:
         try:
-            os.remove(f"output/Output_{name}.pptx")
+            os.remove(f"output/{name}_certificate.png")
         except Exception as e:
             print(e)
             pass
@@ -39,44 +38,18 @@ def read_csv(filename):
     return names, emails
 
 
-def add_name_to_ppt(ppt_file_path, names):
-    # Opening file
+def add_name_to_certificate(file_path, names):
+    """
+    Add a name to a PDF file.
+    """
+    filepath = os.path.abspath(file_path)
     for name in names:
-        prs = Presentation(ppt_file_path)
-        slide = prs.slides[0]
-
-        # Prinitng everyones name on the certificate
-        for shape in slide.shapes:
-            if shape.has_text_frame:
-                text_frame = shape.text_frame
-
-                if text_frame.text == "Name":
-                    text_frame.clear()
-                    p = text_frame.paragraphs[0]
-                    run = p.add_run()
-                    run.text = name
-                    font = run.font
-                    font.name = "Caveat"
-                    font.size = Pt(35)
-
-        file_path_ppt = f"output/Output_{name}.pptx"
-        file_path_pdf = f"output/Output_{name}.pdf"
-        prs.save(file_path_ppt)
-        # ppt_to_pdf(file_path_ppt, file_path_pdf)
-        # delete_file(file_path_ppt)
-
-
-def ppt_to_pdf(input_file_path, output_file_path):
-    # Create powerpoint application object
-    powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
-    # Set visibility to minimize
-    powerpoint.Visible = 1
-    # Open the powerpoint slides
-    slides = powerpoint.Presentations.Open(input_file_path)
-    # Save as PDF (formatType = 32)
-    slides.SaveAs(output_file_path, 32)
-    # Close the slide deck
-    slides.Close()
+        image = Image.open(filepath)
+        caveat_font = ImageFont.truetype('Caveat/caveat.ttf', 50)
+        title_text = name
+        image_editable = ImageDraw.Draw(image)
+        image_editable.text((60,285), title_text, (0, 0, 0), font=caveat_font)
+        image.save(f"output/{name}_certificate.png")
 
 
 def read_body(filename):
@@ -96,12 +69,12 @@ def create_email_body(name, email, body):
     message["From"] = sender_email
     message["To"] = receiver_email
     message["Subject"] = subject
-    message["Bcc"] = receiver_email  # Recommended for mass emails
+    message["Bcc"] = "manastole.01@gmail.com"  # Recommended for mass emails
 
     # Add body to email
     message.attach(MIMEText(body, "plain"))
 
-    filename = f"output/Output_{name}.pptx"  # In same directory as script
+    filename = f"output/{name}_certificate.png"  # In same directory as script
     # Open PDF file in binary mode
     with open(filename, "rb") as attachment:
         # Add file as application/octet-stream
@@ -115,7 +88,7 @@ def create_email_body(name, email, body):
     # Add header as key/value pair to attachment part
     part.add_header(
         "Content-Disposition",
-        f"attachment; filename= {name} Certificate.pptx",
+        f"attachment; filename= {name} Certificate.png",
     )
 
     # Add attachment to message and convert message to string
@@ -141,14 +114,13 @@ def send_mail(names, emails):
             text = create_email_body(names[i], emails[i], body)
             receiver_email = emails[i]
             server.sendmail(sender_email, receiver_email, text)
-            print(f"Mail sent successfully to {names[i]}.")
+            print(f"Mail sent successfully to {i} - {names[i]} - {emails[i]}.")
 
 
 if __name__ == "__main__":
-    ppt_file_path = "assets/Both_tracks.pptx"
-    user_data_file_path = os.path.abspath("User_details/Trial.csv")
+    file_path = "assets/Both_tracks.png"
+    user_data_file_path = os.path.abspath("User_details/Both_Track_Winners_Data.csv")
     names, emails = read_csv(user_data_file_path)
-    add_name_to_ppt(ppt_file_path, names)
+    add_name_to_certificate(file_path, names)
     send_mail(names, emails)
-
-    delete_pptx(names)
+    delete_files(names)
